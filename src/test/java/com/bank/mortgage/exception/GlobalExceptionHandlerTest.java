@@ -18,13 +18,7 @@ class GlobalExceptionHandlerTest {
     @Mock
     private WebRequest request;
 
-//    @BeforeEach
-//    void setUp() {
-//        globalExceptionHandler = new GlobalExceptionHandler();
-//
-//            // Implement methods if required
-//        };
-//    }
+
 
     @Test
     void whenMaxLoanExceededException_thenReturnsBadRequest() {
