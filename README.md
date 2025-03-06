@@ -17,20 +17,20 @@ The assignment implement a Mortgage application using Spring boot that contains 
 - OpenApi Documentation
 - Postman
 
-## Steps to run the Stock Application
+## Steps to run the Mortgage Application
 There are several ways to run a Spring Boot application on your local machine.
 
 ### Method 1: Using Docker
 
 - Open cmd and run
-  docker pull SakshiMahajan899/application:v1.0.0
+  docker pull sakshi899/backend-mortgage-system:v1.0.0
 - After image pull run the application by using below commad
-  docker run -p 8080:8080 SakshiMahajan899/application:v1.0.0
+  docker run -p 8080:8080 sakshi899/backend-mortgage-system:v1.0.0
 
 ### Method 2: Using Git and Docker
 
 - Clone the repository:
-  - git clone https://github.com/SakshiMahajan899/mortgage.git
+  - git clone https://github.com/SakshiMahajan899/backend-mortgage-system.git
   - cd backend-mortgage-system
 - Docker compose file that can be run with **docker-compose up --build** which should start up a functional application at port 8080 (including dependencies like a database)
 
@@ -138,13 +138,11 @@ There are several ways to run a Spring Boot application on your local machine.
 
 ## Continuous Integration and Deployment
 
-- Within the stock/.github/workflows/ directory, you'll find the ci-cd.yml file, which is used to build the code & deploy the application image to dockerHub.
+- Within the backend-mortgage-system/.github/workflows/ directory, you'll find the ci-cd.yml file, which is used to build the code & deploy the application image to dockerHub.
 - All the Unit and Integration Test Cases are automatically triggered once pipeline execute.
-- Pipeline Link for reference 
+- Pipeline Link for reference https://github.com/SakshiMahajan899/backend-mortgage-system/actions/runs/13706849864
 
 
 
 
-## To-do and considerations
-- ...
 
