@@ -1,18 +1,23 @@
-openapi: 3.0.0
+openapi: 3.0.1
 info:
   title: Mortgage API
-  description: API for handling mortgage-related operations
+  description: API for handling mortgage-related operations.
   version: 1.0.0
 servers:
-  - url: /api/v1
+  - url: http://localhost:8080/api/v1
+    description: Local server
+
 paths:
   /interest-rates:
     get:
       summary: Fetch interest rates
+      description: Retrieves a list of all interest rates.
       operationId: getInterestRates
+      tags:
+        - Interest Rates
       responses:
         '200':
-          description: List of interest rate responses
+          description: Successfully fetched interest rates.
           content:
             application/json:
               schema:
@@ -20,17 +25,21 @@ paths:
                 items:
                   $ref: '#/components/schemas/InterestRateResponse'
         '500':
-          description: Error fetching interest rates
+          description: Internal server error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+
   /mortgage-check:
     post:
-      summary: Check the feasibility of a mortgage
+      summary: Check mortgage feasibility
+      description: Checks the feasibility of a mortgage and calculates the monthly cost.
       operationId: mortgageCheck
+      tags:
+        - Mortgage Check
       requestBody:
-        description: Mortgage check request payload
+        description: Mortgage check request payload.
         required: true
         content:
           application/json:
@@ -38,62 +47,94 @@ paths:
               $ref: '#/components/schemas/MortgageCheckRequest'
       responses:
         '200':
-          description: Mortgage check response
+          description: Successfully checked mortgage feasibility.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/MortgageCheckResponse'
         '400':
-          description: Invalid mortgage check request
+          description: Bad request.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: Interest rate not found for the given maturity period
+          description: Not found.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '500':
-          description: Error processing mortgage check
+          description: Internal server error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+
 components:
   schemas:
     InterestRateResponse:
       type: object
       properties:
-        rate:
+        maturityPeriod:
+          type: integer
+          description: Maturity period in years.
+        interestRate:
           type: number
           format: float
-        term:
+          description: Interest rate.
+        lastUpdate:
           type: string
+          format: date-time
+          description: Last update timestamp.
+
     MortgageCheckRequest:
       type: object
       properties:
-        amount:
-          type: number
-          format: float
-        term:
-          type: string
         income:
           type: number
-          format: float
+          format: double
+          minimum: 1
+          description: User's annual income. Must be greater than 0.
+          example: 50000
+        loanValue:
+          type: number
+          format: double
+          minimum: 1
+          description: Value of the loan. Must be greater than 0.
+          example: 200000
+        homeValue:
+          type: number
+          format: double
+          minimum: 1
+          description: Value of the home. Must be greater than 0.
+          example: 250000
+        maturityPeriod:
+          type: integer
+          minimum: 1
+          description: Maturity period in years. Must be greater than 0.
+          example: 30
+
     MortgageCheckResponse:
       type: object
       properties:
-        eligible:
+        feasible:
           type: boolean
-        maximumAmount:
+          description: Indicates if the mortgage is feasible.
+        monthlyCost:
           type: number
-          format: float
+          format: double
+          description: Monthly mortgage cost.
+
     ErrorResponse:
       type: object
       properties:
-        errorCode:
+        message:
           type: string
-        errorMessage:
+          description: Error message.
+        code:
           type: string
+          description: Error code.
+        status:
+          type: string
+          description: HTTP status code.
