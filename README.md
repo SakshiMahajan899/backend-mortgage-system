@@ -158,7 +158,7 @@ There are several ways to run a Spring Boot application on your local machine.
     
 ### Custom Exceptions for Better Error Handling
 
- - Instead of generic exceptions, we have specific exceptions for better debugging.
+ - Instead of generic exceptions, I have specific exceptions for better debugging.
 
 
 
