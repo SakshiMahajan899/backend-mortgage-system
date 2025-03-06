@@ -13,6 +13,8 @@ The assignment implement a Mortgage application using Spring boot that contains 
 - Spring Framework
 - Mockito
 - Spring Security
+- Lombok (Reduces boilerplate code)
+- SLF4J (For logging)
 - OpenApi Documentation
 - Postman
 
@@ -141,6 +143,23 @@ There are several ways to run a Spring Boot application on your local machine.
   build the code & deploy the application image to dockerHub.
 - All the Unit and Integration Test Cases are automatically triggered once pipeline execute.
 - Pipeline Link for reference https://github.com/SakshiMahajan899/backend-mortgage-system/actions/runs/13706849864
+
+## Code Design & Best Practices
+
+### Separation of Concerns
+  
+  - MortgageService handles mortgage calculations.
+  - InterestRateService handles interest rate retrieval.
+  - MortgageCalculatorStrategy is used for flexible interest rate calculations.
+    
+### Caching (Performance Optimization)
+  
+  - @Cacheable("interestRates") is used to reduce database queries for interest rates.
+    
+### Custom Exceptions for Better Error Handling
+
+ - Instead of generic exceptions, we have specific exceptions for better debugging.
+
 
 
 
