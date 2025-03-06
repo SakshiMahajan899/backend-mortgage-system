@@ -1,12 +1,15 @@
 package com.bank.mortgage.controller;
 
+import com.bank.mortgage.exception.ErrorResponse;
 import com.bank.mortgage.exception.HomeValueExceededException;
 import com.bank.mortgage.exception.InterestRateNotFoundException;
 import com.bank.mortgage.exception.MaxLoanExceededException;
 import com.bank.mortgage.model.InterestRateResponse;
 import com.bank.mortgage.model.MortgageCheckRequest;
 import com.bank.mortgage.model.MortgageCheckResponse;
+import com.bank.mortgage.service.InterestRateService;
 import com.bank.mortgage.service.MortgageService;
+import com.bank.mortgage.util.ExceptionMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -25,6 +29,8 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 
+import static com.bank.mortgage.util.ExceptionMessage.HOME_VALUE_EXCEEDED;
+import static com.bank.mortgage.util.ExceptionMessage.MAX_LOAN_EXCEEDED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -41,6 +47,9 @@ class MortgageControllerTest {
 
     @MockBean
     private MortgageService mortgageService;
+
+    @MockBean
+    private InterestRateService interestRateService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -72,7 +81,7 @@ class MortgageControllerTest {
     void getInterestRates_whenValidRequest_shouldReturnInterestRates() throws Exception {
         List<InterestRateResponse> interestRates = Collections.singletonList(interestRateResponse);
 
-        when(mortgageService.getInterestRates()).thenReturn(interestRates);
+        when(interestRateService.getAllInterestRates()).thenReturn(interestRates);
 
         mockMvc.perform(get("/api/v1/interest-rates"))
                 .andExpect(status().isOk())
@@ -102,11 +111,17 @@ class MortgageControllerTest {
         when(mortgageService.calculateMortgage(any(MortgageCheckRequest.class)))
                 .thenThrow(new MaxLoanExceededException());
 
+        ErrorResponse errorResponse = new ErrorResponse("Max loan exceeded", "MAX_LOAN_EXCEEDED", HttpStatus.BAD_REQUEST);
+
         mockMvc.perform(post("/api/v1/mortgage-check")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                         .with(csrf()))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.message").value(MAX_LOAN_EXCEEDED.getMessage()))
+                .andExpect(jsonPath("$.code").value(errorResponse.getCode()))
+                .andExpect(jsonPath("$.status").value(errorResponse.getStatus().name()));
     }
 
     @Test
@@ -115,23 +130,47 @@ class MortgageControllerTest {
         when(mortgageService.calculateMortgage(any(MortgageCheckRequest.class)))
                 .thenThrow(new HomeValueExceededException());
 
+        ErrorResponse errorResponse = new ErrorResponse("Home value exceeded", "HOME_VALUE_EXCEEDED", HttpStatus.BAD_REQUEST);
+
         mockMvc.perform(post("/api/v1/mortgage-check")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                         .with(csrf()))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.message").value(HOME_VALUE_EXCEEDED.getMessage()))
+                .andExpect(jsonPath("$.code").value(errorResponse.getCode()))
+                .andExpect(jsonPath("$.status").value(errorResponse.getStatus().name()));
     }
 
     @Test
     @WithMockUser(username = "user", roles = {"USER"})
     void mortgageCheck_whenInterestRateNotFound_shouldReturnNotFound() throws Exception {
         when(mortgageService.calculateMortgage(any(MortgageCheckRequest.class)))
-                .thenThrow(new InterestRateNotFoundException());
+                .thenThrow(new InterestRateNotFoundException(ExceptionMessage.INTEREST_RATE_FETCH_ERROR.getMessage()));
+
+        ErrorResponse errorResponse = new ErrorResponse(ExceptionMessage.INTEREST_RATE_FETCH_ERROR.getMessage(), "INTEREST_RATE_NOT_FOUND", HttpStatus.NOT_FOUND);
 
         mockMvc.perform(post("/api/v1/mortgage-check")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                         .with(csrf()))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.message").value(errorResponse.getMessage()))
+                .andExpect(jsonPath("$.code").value(errorResponse.getCode()))
+                .andExpect(jsonPath("$.status").value(errorResponse.getStatus().name()));
     }
+
+
+    @Test
+    @WithMockUser(username = "user", roles = {"USER"})
+    void getInterestRates_whenServiceThrowsException_shouldReturnInternalServerError() throws Exception {
+        when(interestRateService.getAllInterestRates()).thenThrow(new RuntimeException("Service error"));
+
+        mockMvc.perform(get("/api/v1/interest-rates")
+                        .with(csrf()))
+                .andExpect(status().isInternalServerError());
+    }
+
 }

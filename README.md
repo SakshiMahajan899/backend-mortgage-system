@@ -6,7 +6,6 @@ The assignment implement a Mortgage application using Spring boot that contains 
 
 ## Tools and Technology
 
-
 - Java 21
 - Maven 3.5.1
 - Git
@@ -18,6 +17,7 @@ The assignment implement a Mortgage application using Spring boot that contains 
 - Postman
 
 ## Steps to run the Mortgage Application
+
 There are several ways to run a Spring Boot application on your local machine.
 
 ### Method 1: Using Docker
@@ -30,22 +30,20 @@ There are several ways to run a Spring Boot application on your local machine.
 ### Method 2: Using Git and Docker
 
 - Clone the repository:
-  - git clone https://github.com/SakshiMahajan899/backend-mortgage-system.git
-  - cd backend-mortgage-system
-- Docker compose file that can be run with **docker-compose up --build** which should start up a functional application at port 8080 (including dependencies like a database)
-
+    - git clone https://github.com/SakshiMahajan899/backend-mortgage-system.git
+    - cd backend-mortgage-system
+- Docker compose file that can be run with **docker-compose up --build** which should start up a functional application
+  at port 8080 (including dependencies like a database)
 
 ### Access the application:
 
-- Mortgage Application is up and running on localhost at port 8080 you can execute below metioned endpoints using POSTMAN.
-
+- Mortgage Application is up and running on localhost at port 8080 you can execute below metioned endpoints using
+  POSTMAN.
 
 ## Spring Security
 
 - This application uses the Spring Security for authentication
 - Use **Basic Auth** inside Authorization and pass **Username** - user and **Password** - password
-
-
 
 ## Endpoints
 
@@ -59,6 +57,7 @@ There are several ways to run a Spring Boot application on your local machine.
    <td>
 
       get a list of current interest rates
+
    </td>
    <td>
 
@@ -71,17 +70,17 @@ There are several ways to run a Spring Boot application on your local machine.
 
    ```json
          [
-            {
-              "maturityPeriod": 10,
-              "interestRate": 5.0,
-              "lastUpdate": "2025-03-03T12:00:00.000+00:00"
-            },
-            {
-              "maturityPeriod": 20,
-              "interestRate": 6.0,
-              "lastUpdate": "2025-03-03T12:00:00.000+00:00"
-            }
-         ]
+  {
+    "maturityPeriod": 10,
+    "interestRate": 5.0,
+    "lastUpdate": "2025-03-03T12:00:00.000+00:00"
+  },
+  {
+    "maturityPeriod": 20,
+    "interestRate": 6.0,
+    "lastUpdate": "2025-03-03T12:00:00.000+00:00"
+  }
+]
    ```
 
    </td>
@@ -93,6 +92,7 @@ There are several ways to run a Spring Boot application on your local machine.
    <td>
 
         post the parameters to calculate for a mortgage check
+
    </td>
    <td>
 
@@ -121,7 +121,6 @@ There are several ways to run a Spring Boot application on your local machine.
 
 </table>
 
-
 ## Testing and Validation
 
 ### Unit Tests (UT) & Integration Tests (IT)
@@ -133,12 +132,13 @@ There are several ways to run a Spring Boot application on your local machine.
 ## Logging and Monitoring
 
 - Proper logging is done to log requests, responses, and errors.
-- Used Spring Boot Actuator for monitoring the health of application in production , exposed **/actuator/health** and **/actuator/metrics** endpoints for real-time          monitoring
-
+- Used Spring Boot Actuator for monitoring the health of application in production , exposed **/actuator/health** and *
+  */actuator/metrics** endpoints for real-time monitoring
 
 ## Continuous Integration and Deployment
 
-- Within the backend-mortgage-system/.github/workflows/ directory, you'll find the ci-cd.yml file, which is used to build the code & deploy the application image to dockerHub.
+- Within the backend-mortgage-system/.github/workflows/ directory, you'll find the ci-cd.yml file, which is used to
+  build the code & deploy the application image to dockerHub.
 - All the Unit and Integration Test Cases are automatically triggered once pipeline execute.
 - Pipeline Link for reference https://github.com/SakshiMahajan899/backend-mortgage-system/actions/runs/13706849864
 

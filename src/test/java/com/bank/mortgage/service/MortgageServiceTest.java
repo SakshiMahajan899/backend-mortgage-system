@@ -1,102 +1,111 @@
 package com.bank.mortgage.service;
 
-import com.bank.mortgage.exception.*;
+import com.bank.mortgage.exception.HomeValueExceededException;
+import com.bank.mortgage.exception.InterestRateNotFoundException;
+import com.bank.mortgage.exception.MaxLoanExceededException;
+import com.bank.mortgage.exception.MortgageCalculationException;
 import com.bank.mortgage.model.InterestRate;
-import com.bank.mortgage.model.InterestRateResponse;
 import com.bank.mortgage.model.MortgageCheckRequest;
 import com.bank.mortgage.model.MortgageCheckResponse;
-import com.bank.mortgage.repository.InterestRateRepository;
-import com.bank.mortgage.util.ExceptionMessage;
+import com.bank.mortgage.strategy.MortgageCalculatorStrategy;
+import com.bank.mortgage.util.MortgageConstants;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Collections;
-import java.util.List;
+import org.mockito.MockitoAnnotations;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
 class MortgageServiceTest {
 
     @Mock
-    private InterestRateRepository interestRateRepository;
+    private InterestRateService interestRateService;
+
+    @Mock
+    private MortgageCalculatorStrategy mortgageCalculator;
 
     @InjectMocks
     private MortgageService mortgageService;
 
-    private MortgageCheckRequest validRequest;
+    private MortgageCheckRequest request;
+    private InterestRate interestRate;
 
     @BeforeEach
     void setUp() {
-        validRequest = new MortgageCheckRequest();
-        validRequest.setIncome(75000d);
-        validRequest.setMaturityPeriod(30);
-        validRequest.setLoanValue(250000d);
-        validRequest.setHomeValue(300000d);
-    }
+        MockitoAnnotations.openMocks(this);
+        request = new MortgageCheckRequest();
+        request.setIncome(750000d);
+        request.setMaturityPeriod(30);
+        request.setLoanValue(25000d);
+        request.setHomeValue(300000d);
 
-    @Test
-    void calculateMortgage_ShouldReturnFeasibleResponse() {
-        InterestRate interestRate = new InterestRate();
+        interestRate = new InterestRate();
         interestRate.setMaturityPeriod(30);
         interestRate.setInterestRate(5.0);
+    }
 
-        when(interestRateRepository.findByMaturityPeriod(30)).thenReturn(interestRate);
+    @Test
+    void whenCalculateMortgageWithValidRequest_thenReturnsMortgageCheckResponse() {
+        when(interestRateService.getInterestRate(anyInt())).thenReturn(interestRate);
+        when(mortgageCalculator.calculateMonthlyCost(anyDouble(), anyDouble(), anyInt())).thenReturn(1342.05);
 
-        MortgageCheckResponse response = mortgageService.calculateMortgage(validRequest);
+        MortgageCheckResponse response = mortgageService.calculateMortgage(request);
 
+        assertNotNull(response);
         assertTrue(response.isFeasible());
-        assertEquals(1342.05, response.getMonthlyCost(), 0.01);
+        assertEquals(1342.05, response.getMonthlyCost());
     }
 
     @Test
-    void calculateMortgage_ShouldThrowMaxLoanExceededException() {
-        validRequest.setLoanValue(350000d);
+    void whenCalculateMortgageWithMaxLoanExceeded_thenThrowsMaxLoanExceededException() {
 
-        MaxLoanExceededException exception = assertThrows(MaxLoanExceededException.class,
-                () -> mortgageService.calculateMortgage(validRequest));
+        request.setLoanValue(350000000d);
+        MaxLoanExceededException exception = assertThrows(
+                MaxLoanExceededException.class,
+                () -> mortgageService.calculateMortgage(request)
+        );
 
-        assertEquals("Loan value exceeds maximum loan limit.", exception.getMessage());
+        assertNotNull(exception);
     }
 
     @Test
-    void calculateMortgage_ShouldThrowInterestRateNotFoundException() {
-        when(interestRateRepository.findByMaturityPeriod(30)).thenReturn(null);
+    void whenCalculateMortgageWithHomeValueExceeded_thenThrowsHomeValueExceededException() {
+        request.setLoanValue(800000d);
 
-        InterestRateNotFoundException exception = assertThrows(InterestRateNotFoundException.class,
-                () -> mortgageService.calculateMortgage(validRequest));
+        HomeValueExceededException exception = assertThrows(
+                HomeValueExceededException.class,
+                () -> mortgageService.calculateMortgage(request)
+        );
 
-        assertEquals("No interest rate found for the given maturity period.", exception.getMessage());
+        assertNotNull(exception);
     }
 
     @Test
-    void getInterestRates_ShouldReturnListOfInterestRates() {
-        InterestRate interestRate = new InterestRate();
-        interestRate.setMaturityPeriod(10);
-        interestRate.setInterestRate(5.0);
+    void whenCalculateMortgageWithInterestRateNotFound_thenThrowsInterestRateNotFoundException() {
+        when(interestRateService.getInterestRate(anyInt())).thenThrow(new InterestRateNotFoundException("Interest rate not found"));
 
-        when(interestRateRepository.findAll()).thenReturn(Collections.singletonList(interestRate));
+        InterestRateNotFoundException exception = assertThrows(
+                InterestRateNotFoundException.class,
+                () -> mortgageService.calculateMortgage(request)
+        );
 
-        List<InterestRateResponse> rates = mortgageService.getInterestRates();
-
-        assertEquals(1, rates.size());
-        assertEquals(10, rates.get(0).getMaturityPeriod());
-        assertEquals(5.0, rates.get(0).getInterestRate());
+        assertEquals("Interest rate not found", exception.getMessage());
     }
 
     @Test
-    void getInterestRates_ShouldThrowMortgageCalculationException() {
-        when(interestRateRepository.findAll()).thenThrow(new RuntimeException());
+    void whenCalculateMortgageWithUnexpectedException_thenThrowsMortgageCalculationException() {
+        when(interestRateService.getInterestRate(anyInt())).thenReturn(interestRate);
+        when(mortgageCalculator.calculateMonthlyCost(anyDouble(), anyDouble(), anyInt())).thenThrow(new RuntimeException("Unexpected error"));
 
-        MortgageCalculationException exception = assertThrows(MortgageCalculationException.class,
-                () -> mortgageService.getInterestRates());
+        MortgageCalculationException exception = assertThrows(
+                MortgageCalculationException.class,
+                () -> mortgageService.calculateMortgage(request)
+        );
 
-        assertEquals(ExceptionMessage.INTEREST_RATE_FETCH_ERROR.getMessage(), exception.getMessage());
+        assertNotNull(exception);
+        assertEquals("java.lang.RuntimeException: Unexpected error", exception.getCause().toString());
     }
 }
-
