@@ -3,15 +3,16 @@ package com.bank.mortgage.controller;
 import com.bank.mortgage.model.InterestRateResponse;
 import com.bank.mortgage.model.MortgageCheckRequest;
 import com.bank.mortgage.model.MortgageCheckResponse;
+import com.bank.mortgage.service.InterestRateService;
 import com.bank.mortgage.service.MortgageService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -25,6 +26,8 @@ public class MortgageController {
 
     private final MortgageService mortgageService;
 
+    private final InterestRateService interestRateService;
+
     /**
      * Endpoint to fetch interest rates.
      *
@@ -33,7 +36,7 @@ public class MortgageController {
     @GetMapping("/api/v1/interest-rates")
     public ResponseEntity<List<InterestRateResponse>> getInterestRates() {
         logger.info("Fetching interest rates");
-        List<InterestRateResponse> interestRates = mortgageService.getInterestRates();
+        List<InterestRateResponse> interestRates = interestRateService.getAllInterestRates();
         return ResponseEntity.ok(interestRates);
     }
 

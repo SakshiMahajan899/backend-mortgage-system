@@ -20,8 +20,6 @@ appUserName: user
 password: password
 
 
-#cache:
-#  ttl: 3 # Time-to-live for cache entries 3 days
 
 management:
   endpoints:

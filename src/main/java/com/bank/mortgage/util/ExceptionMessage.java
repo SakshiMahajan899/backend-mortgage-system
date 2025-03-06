@@ -1,6 +1,5 @@
 package com.bank.mortgage.util;
 
-import lombok.Data;
 import lombok.Getter;
 
 @Getter

@@ -1,0 +1,99 @@
+openapi: 3.0.0
+info:
+  title: Mortgage API
+  description: API for handling mortgage-related operations
+  version: 1.0.0
+servers:
+  - url: /api/v1
+paths:
+  /interest-rates:
+    get:
+      summary: Fetch interest rates
+      operationId: getInterestRates
+      responses:
+        '200':
+          description: List of interest rate responses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InterestRateResponse'
+        '500':
+          description: Error fetching interest rates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /mortgage-check:
+    post:
+      summary: Check the feasibility of a mortgage
+      operationId: mortgageCheck
+      requestBody:
+        description: Mortgage check request payload
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MortgageCheckRequest'
+      responses:
+        '200':
+          description: Mortgage check response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MortgageCheckResponse'
+        '400':
+          description: Invalid mortgage check request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Interest rate not found for the given maturity period
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error processing mortgage check
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    InterestRateResponse:
+      type: object
+      properties:
+        rate:
+          type: number
+          format: float
+        term:
+          type: string
+    MortgageCheckRequest:
+      type: object
+      properties:
+        amount:
+          type: number
+          format: float
+        term:
+          type: string
+        income:
+          type: number
+          format: float
+    MortgageCheckResponse:
+      type: object
+      properties:
+        eligible:
+          type: boolean
+        maximumAmount:
+          type: number
+          format: float
+    ErrorResponse:
+      type: object
+      properties:
+        errorCode:
+          type: string
+        errorMessage:
+          type: string
